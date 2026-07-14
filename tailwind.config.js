@@ -6,18 +6,18 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: 'var(--color-primary-500, #2563EB)',
-          50: 'var(--color-primary-50, #EFF4FF)',
+          DEFAULT: 'rgb(var(--color-primary-500) / <alpha-value>)',
+          50: 'rgb(var(--color-primary-50) / <alpha-value>)',
           100: '#DBE6FE',
-          400: 'var(--color-primary-400, #5B8DEF)',
-          500: 'var(--color-primary-500, #2563EB)',
+          400: 'rgb(var(--color-primary-400) / <alpha-value>)',
+          500: 'rgb(var(--color-primary-500) / <alpha-value>)',
           600: '#1D4ED8',
           700: '#1E40AF',
         },
         secondary: {
-          DEFAULT: 'var(--color-secondary-500, #7C3AED)',
+          DEFAULT: 'rgb(var(--color-secondary-500) / <alpha-value>)',
           400: '#A276F2',
-          500: 'var(--color-secondary-500, #7C3AED)',
+          500: 'rgb(var(--color-secondary-500) / <alpha-value>)',
           600: '#6D28D9',
         },
         success: '#22C55E',

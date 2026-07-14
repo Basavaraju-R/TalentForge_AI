@@ -13,35 +13,51 @@ body {
 }
 
 :root {
-  --color-primary-50: #EFF4FF;
-  --color-primary-400: #5B8DEF;
-  --color-primary-500: #2563EB;
-  --color-secondary-500: #7C3AED;
+  --color-primary-50: 239 244 255;
+  --color-primary-400: 91 141 239;
+  --color-primary-500: 37 99 235;
+  --color-secondary-500: 124 58 237;
   --bg-gradient: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
 }
 
 html[data-theme='ocean'] {
-  --color-primary-50: #e0f2fe;
-  --color-primary-400: #38bdf8;
-  --color-primary-500: #0ea5e9;
-  --color-secondary-500: #14b8a6;
+  --color-primary-50: 224 242 254;
+  --color-primary-400: 56 189 248;
+  --color-primary-500: 14 165 233;
+  --color-secondary-500: 20 184 166;
   --bg-gradient: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
 }
 
 html[data-theme='forest'] {
-  --color-primary-50: #dcfce7;
-  --color-primary-400: #4ade80;
-  --color-primary-500: #22c55e;
-  --color-secondary-500: #84cc16;
+  --color-primary-50: 220 252 231;
+  --color-primary-400: 74 222 128;
+  --color-primary-500: 34 197 94;
+  --color-secondary-500: 132 204 22;
   --bg-gradient: linear-gradient(135deg, #22c55e 0%, #84cc16 100%);
 }
 
 html[data-theme='sunset'] {
-  --color-primary-50: #ffedd5;
-  --color-primary-400: #fb923c;
-  --color-primary-500: #f97316;
-  --color-secondary-500: #ef4444;
+  --color-primary-50: 255 237 213;
+  --color-primary-400: 251 146 60;
+  --color-primary-500: 249 115 22;
+  --color-secondary-500: 239 68 68;
   --bg-gradient: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+}
+
+html[data-theme='amethyst'] {
+  --color-primary-50: 250 245 255;
+  --color-primary-400: 192 132 252;
+  --color-primary-500: 168 85 247;
+  --color-secondary-500: 236 72 153;
+  --bg-gradient: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+}
+
+html[data-theme='rose'] {
+  --color-primary-50: 255 241 242;
+  --color-primary-400: 251 113 133;
+  --color-primary-500: 244 63 94;
+  --color-secondary-500: 217 70 239;
+  --bg-gradient: linear-gradient(135deg, #f43f5e 0%, #d946ef 100%);
 }
 
 h1, h2, h3, h4, h5 {
@@ -50,8 +66,8 @@ h1, h2, h3, h4, h5 {
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { @apply bg-primary/30 rounded-full; }
-::-webkit-scrollbar-thumb:hover { @apply bg-primary/50; }
+::-webkit-scrollbar-thumb { @apply bg-primary bg-opacity-30 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-primary bg-opacity-50; }
 
 *:focus-visible {
   outline: 2px solid #7C3AED;
@@ -73,13 +89,13 @@ h1, h2, h3, h4, h5 {
     @apply inline-flex items-center justify-center gap-2 rounded-xl2 bg-brand-gradient text-white font-semibold px-6 py-3 shadow-soft transition-all duration-300 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl2 border border-primary/30 text-primary dark:text-primary-400 font-semibold px-6 py-3 transition-all duration-300 hover:bg-primary/5 dark:hover:bg-white/5;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl2 border border-primary border-opacity-30 text-primary dark:text-primary-400 font-semibold px-6 py-3 transition-all duration-300 hover:bg-primary hover:bg-opacity-5 dark:hover:bg-white/5;
   }
   .badge {
     @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold;
   }
   .input-field {
-    @apply w-full rounded-xl2 border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/5 px-4 py-3 text-sm outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/20;
+    @apply w-full rounded-xl2 border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/5 px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:border-opacity-60 focus:ring-2 focus:ring-primary focus:ring-opacity-20;
   }
   .skeleton {
     @apply animate-pulse bg-slate-200/70 dark:bg-white/10 rounded-xl2;

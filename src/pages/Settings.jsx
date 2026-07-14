@@ -46,7 +46,9 @@ export default function Settings() {
     { id: 'default', name: 'Default Blue', bg: 'bg-blue-600' },
     { id: 'ocean', name: 'Ocean Teal', bg: 'bg-sky-500' },
     { id: 'forest', name: 'Forest Green', bg: 'bg-green-500' },
-    { id: 'sunset', name: 'Sunset Orange', bg: 'bg-orange-500' }
+    { id: 'sunset', name: 'Sunset Orange', bg: 'bg-orange-500' },
+    { id: 'amethyst', name: 'Amethyst Purple', bg: 'bg-purple-500' },
+    { id: 'rose', name: 'Rose Pink', bg: 'bg-rose-500' }
   ]
 
   return (

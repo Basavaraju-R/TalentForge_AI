@@ -1,4 +1,5 @@
-import { Briefcase, Users, ListChecks, CalendarDays, UserCheck } from 'lucide-react'
+import { Users, FileText, CheckCircle, Video, Briefcase, TrendingUp } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
   LineChart, Line, PieChart, Pie, Cell, Legend, Funnel, FunnelChart, LabelList,
@@ -9,14 +10,16 @@ import { recruiterNav } from '../data/navConfig.js'
 import { hiringFunnel, applicationsTimeline, topSkillsDemand, candidateSources } from '../data/mockData.js'
 
 export default function RecruiterDashboard() {
+  const navigate = useNavigate()
+
   return (
     <DashboardShell items={recruiterNav} roleLabel="Recruiter" title="Dashboard" avatarSeed="RS">
       <div className="grid sm:grid-cols-2 xl:grid-cols-5 gap-5">
-        <StatCard icon={Briefcase} label="Active Jobs" value="14" accent="primary" />
-        <StatCard icon={Users} label="Applications" value="480" sub="+62 this week" accent="secondary" />
-        <StatCard icon={ListChecks} label="Shortlisted" value="96" accent="primary" />
-        <StatCard icon={CalendarDays} label="Interviews" value="42" accent="warning" />
-        <StatCard icon={UserCheck} label="Hired" value="24" sub="This quarter" accent="success" />
+        <StatCard icon={Briefcase} label="Active Jobs" value="14" accent="primary" onClick={() => navigate('/recruiter/jobs')} />
+        <StatCard icon={FileText} label="Applications" value="480" sub="+62 this week" accent="secondary" onClick={() => navigate('/recruiter/applicants')} />
+        <StatCard icon={Users} label="Shortlisted" value="96" accent="primary" onClick={() => navigate('/recruiter/screening')} />
+        <StatCard icon={Video} label="Interviews" value="42" accent="warning" onClick={() => navigate('/recruiter/interviews')} />
+        <StatCard icon={CheckCircle} label="Hired" value="24" sub="This quarter" accent="success" onClick={() => navigate('/recruiter/reports')} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-5">
