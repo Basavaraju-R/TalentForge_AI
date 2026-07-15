@@ -1,4 +1,5 @@
 import { Sparkles } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 export default function Footer() {
   return (
@@ -18,19 +19,19 @@ export default function Footer() {
         <div>
           <p className="font-heading font-semibold text-sm mb-3">Platform</p>
           <ul className="space-y-2 text-sm text-slate-500 dark:text-slate-400">
-            <li>Resume Analyzer</li>
-            <li>Mock Interviews</li>
-            <li>Skill Gap Analysis</li>
-            <li>Career Coach</li>
+            <li><Link to="/student/resume-analyzer" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Resume Analyzer</Link></li>
+            <li><Link to="/student/mock-interview" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Mock Interviews</Link></li>
+            <li><Link to="/student/skill-gap" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Skill Gap Analysis</Link></li>
+            <li><Link to="/student/career-coach" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Career Coach</Link></li>
           </ul>
         </div>
         <div>
           <p className="font-heading font-semibold text-sm mb-3">Company</p>
           <ul className="space-y-2 text-sm text-slate-500 dark:text-slate-400">
-            <li>About</li>
-            <li>Pricing</li>
-            <li>Contact</li>
-            <li>Privacy</li>
+            <li><Link to="/about" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">About</Link></li>
+            <li><Link to="/pricing" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Pricing</Link></li>
+            <li><Link to="/contact" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Contact</Link></li>
+            <li><Link to="/privacy" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Privacy</Link></li>
           </ul>
         </div>
       </div>

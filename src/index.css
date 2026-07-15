@@ -105,6 +105,30 @@ h1, h2, h3, h4, h5 {
   }
 }
 
+@keyframes drawCircuit {
+  0% { stroke-dashoffset: 1000; opacity: 0; }
+  10% { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+@keyframes pulseNode {
+  0% { transform: scale(1); opacity: 0.5; box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+  50% { transform: scale(1.5); opacity: 1; box-shadow: 0 0 20px 10px rgba(37, 99, 235, 0); }
+  100% { transform: scale(1); opacity: 0.5; box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+@keyframes revealText {
+  0% { opacity: 0; transform: translateY(20px); letter-spacing: 0.5em; filter: blur(10px); }
+  100% { opacity: 1; transform: translateY(0); letter-spacing: normal; filter: blur(0); }
+}
+@keyframes fadeOutScreen {
+  0% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+.animate-draw-circuit { animation: drawCircuit 3s ease-in-out forwards; }
+.animate-pulse-node { animation: pulseNode 2s infinite; }
+.animate-reveal-text { animation: revealText 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+.animate-fade-out-screen { animation: fadeOutScreen 0.5s ease-out forwards; animation-delay: 3.5s; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

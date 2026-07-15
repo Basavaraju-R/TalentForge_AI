@@ -1,18 +1,26 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Sparkles, Mail, Lock, Eye, EyeOff, Globe, Code2, Briefcase } from 'lucide-react'
+import { Sparkles, Mail, Lock, Eye, EyeOff, Globe, Code2, Briefcase, GraduationCap, Building2, School } from 'lucide-react'
+
+const roles = [
+  { id: 'student', label: 'Student', icon: GraduationCap, dest: '/student/dashboard' },
+  { id: 'recruiter', label: 'Recruiter', icon: Building2, dest: '/recruiter/dashboard' },
+  { id: 'institution', label: 'Institution', icon: School, dest: '/institution/dashboard' },
+]
 
 export default function Login() {
   const [showPass, setShowPass] = useState(false)
+  const [role, setRole] = useState('student')
   const navigate = useNavigate()
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    navigate('/student/dashboard')
+    const dest = roles.find((r) => r.id === role)?.dest ?? '/student/dashboard'
+    navigate(dest)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4 py-12">
       <div className="absolute inset-0 bg-brand-gradient-soft" />
       <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-primary-500/20 blur-3xl" />
       <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-secondary-500/20 blur-3xl" />
@@ -26,7 +34,25 @@ export default function Login() {
         </Link>
 
         <h1 className="text-2xl font-heading font-bold text-center">Welcome back</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 text-center mt-1 mb-8">Log in to continue building your career.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 text-center mt-1 mb-6">Log in to your account.</p>
+
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          {roles.map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => setRole(r.id)}
+              className={`flex flex-col items-center gap-1.5 py-3 rounded-xl2 border text-xs font-semibold transition-all ${
+                role === r.id
+                  ? 'bg-brand-gradient text-white border-transparent shadow-soft'
+                  : 'border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-primary-400'
+              }`}
+            >
+              <r.icon size={18} />
+              {r.label}
+            </button>
+          ))}
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -61,16 +87,26 @@ export default function Login() {
           <div className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <button className="btn-secondary !px-0" title="Continue with Google"><Globe size={18} /></button>
-          <button className="btn-secondary !px-0" title="Continue with GitHub"><Code2 size={18} /></button>
-          <button className="btn-secondary !px-0" title="Continue with LinkedIn"><Briefcase size={18} /></button>
+        <div className="space-y-3 mb-8">
+          <button type="button" onClick={() => alert("Redirecting to Google secure login...")} className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <Globe size={18} className="text-slate-600 dark:text-slate-300" /> Continue with Google
+          </button>
+          <button type="button" onClick={() => alert("Redirecting to GitHub secure login...")} className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <Code2 size={18} className="text-slate-600 dark:text-slate-300" /> Continue with GitHub
+          </button>
+          <button type="button" onClick={() => alert("Redirecting to LinkedIn secure login...")} className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <Briefcase size={18} className="text-blue-600 dark:text-blue-400" /> Continue with LinkedIn
+          </button>
         </div>
 
-        <p className="text-sm text-center text-slate-500 dark:text-slate-400 mt-8">
-          Don't have an account? <Link to="/signup" className="text-primary-600 dark:text-primary-400 font-semibold">Sign up</Link>
+        <p className="text-sm text-center text-slate-500 dark:text-slate-400">
+          First time logging in? <Link to="/signup" className="text-primary-600 dark:text-primary-400 font-semibold block mt-1 hover:underline">Must create an account in TalentForge AI</Link>
         </p>
       </div>
     </div>
   )
 }
+
+
+
+

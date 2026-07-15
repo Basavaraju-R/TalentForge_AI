@@ -58,7 +58,7 @@ export default function Signup() {
             <label className="text-sm font-medium mb-1.5 block">Full name</label>
             <div className="relative">
               <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input required placeholder="Jane Doe" className="input-field pl-11" />
+              <input required placeholder="Full Name" className="input-field pl-11" />
             </div>
           </div>
           <div>

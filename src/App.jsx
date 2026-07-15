@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import { useState } from 'react'
 import Landing from './pages/Landing.jsx'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
@@ -29,38 +30,65 @@ import Notifications from './pages/Notifications.jsx'
 import Settings from './pages/Settings.jsx'
 import NotFound from './pages/NotFound.jsx'
 
+import About from './pages/About.jsx'
+import Pricing from './pages/Pricing.jsx'
+import Contact from './pages/Contact.jsx'
+import Privacy from './pages/Privacy.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
+import SplashScreen from './components/SplashScreen.jsx'
+import ChatbotWidget from './components/ChatbotWidget.jsx'
+
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
   return (
-    <Routes>
+    <>
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      <ChatbotWidget />
+      <Routes>
+      {/* Public Routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      
+      <Route path="/about" element={<About />} />
+      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/privacy" element={<Privacy />} />
 
-      <Route path="/student/dashboard" element={<StudentDashboard />} />
-      <Route path="/student/resume-analyzer" element={<ResumeAnalyzer />} />
-      <Route path="/student/ats-score" element={<ATSScore />} />
-      <Route path="/student/skill-gap" element={<SkillGap />} />
-      <Route path="/student/roadmap" element={<LearningRoadmap />} />
-      <Route path="/student/mock-interview" element={<MockInterview />} />
-      <Route path="/student/career-coach" element={<CareerCoach />} />
-      <Route path="/student/jobs" element={<JobPortal />} />
-      <Route path="/student/applications" element={<Applications />} />
-      <Route path="/student/certificates" element={<Certificates />} />
+      {/* Protected Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/student/dashboard" element={<StudentDashboard />} />
+        <Route path="/student/resume-analyzer" element={<ResumeAnalyzer />} />
+        <Route path="/student/ats-score" element={<ATSScore />} />
+        <Route path="/student/skill-gap" element={<SkillGap />} />
+        <Route path="/student/roadmap" element={<LearningRoadmap />} />
+        <Route path="/student/mock-interview" element={<MockInterview />} />
+        <Route path="/student/career-coach" element={<CareerCoach />} />
+        <Route path="/student/jobs" element={<JobPortal />} />
+        <Route path="/student/applications" element={<Applications />} />
+        <Route path="/student/certificates" element={<Certificates />} />
 
-      <Route path="/recruiter/dashboard" element={<RecruiterDashboard />} />
-      <Route path="/recruiter/jobs" element={<RecruiterJobs />} />
-      <Route path="/recruiter/applicants" element={<Applicants />} />
-      <Route path="/recruiter/screening" element={<CandidateScreening />} />
-      <Route path="/recruiter/interviews" element={<InterviewSchedule />} />
-      <Route path="/recruiter/reports" element={<RecruiterReports />} />
+        <Route path="/recruiter/dashboard" element={<RecruiterDashboard />} />
+        <Route path="/recruiter/jobs" element={<RecruiterJobs />} />
+        <Route path="/recruiter/applicants" element={<Applicants />} />
+        <Route path="/recruiter/screening" element={<CandidateScreening />} />
+        <Route path="/recruiter/interviews" element={<InterviewSchedule />} />
+        <Route path="/recruiter/reports" element={<RecruiterReports />} />
 
-      <Route path="/institution/dashboard" element={<InstitutionDashboard />} />
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/institution/dashboard" element={<InstitutionDashboard />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/notifications" element={<Notifications />} />
-      <Route path="/settings" element={<Settings />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/settings" element={<Settings />} />
+      </Route>
+
+      {/* Catch All */}
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </>
   )
 }
+
+
