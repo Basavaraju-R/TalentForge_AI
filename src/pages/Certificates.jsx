@@ -4,8 +4,8 @@ import { studentNav } from '../data/navConfig.js'
 import { jsPDF } from 'jspdf'
 
 const certificates = [
-  { title: 'Java Fundamentals', duration: 'Jan 2026 - Jun 2026', color: 'from-primary-500 to-primary-400' },
-  { title: 'SQL Essentials', duration: 'Mar 2026 - Jun 2026', color: 'from-secondary-500 to-secondary-400' },
+  { title: 'Java Fundamentals', duration: 'Jan 2026 - Jun 2026', image: '/java_cert.png' },
+  { title: 'SQL Essentials', duration: 'Mar 2026 - Jun 2026', image: '/sql_cert.png' },
 ]
 
 const availableCertifications = [
@@ -142,9 +142,12 @@ export default function Certificates() {
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-12">
         {certificates.map((c) => (
-          <div key={c.title} className="card card-hover flex flex-col">
-            <div className={`h-32 rounded-xl2 bg-gradient-to-br ${c.color} flex items-center justify-center mb-4`}>
-              <Award size={40} className="text-white/90" />
+          <div key={c.title} className="card card-hover flex flex-col p-4">
+            <div className={`h-40 rounded-xl overflow-hidden mb-4 border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 relative group`}>
+              <img src={c.image} alt={c.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                <Award size={32} className="text-white" />
+              </div>
             </div>
             <h3 className="font-heading font-semibold text-lg">{c.title}</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-6">Duration: {c.duration}</p>

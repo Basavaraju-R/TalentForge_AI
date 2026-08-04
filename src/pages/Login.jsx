@@ -15,6 +15,7 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    localStorage.setItem('isAuthenticated', 'true')
     const dest = roles.find((r) => r.id === role)?.dest ?? '/student/dashboard'
     navigate(dest)
   }
@@ -100,7 +101,7 @@ export default function Login() {
         </div>
 
         <p className="text-sm text-center text-slate-500 dark:text-slate-400">
-          First time logging in? <Link to="/signup" className="text-primary-600 dark:text-primary-400 font-semibold block mt-1 hover:underline">Must create an account in TalentForge AI</Link>
+          First time logging in? <Link to="/signup" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">Sign up</Link>
         </p>
       </div>
     </div>

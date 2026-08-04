@@ -1,11 +1,26 @@
-import { useState, useEffect } from 'react'
-import { Bell, Search, Menu, Crown, X, QrCode } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { Bell, Search, Menu, Crown, X, QrCode, FileText, Video, TrendingUp } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 import ThemeToggle from '../components/ThemeToggle.jsx'
 
 export default function Topbar({ title, onMenuClick, avatarSeed = 'TF' }) {
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false)
   const [initials, setInitials] = useState(avatarSeed)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showResults, setShowResults] = useState(false)
+  const searchRef = useRef(null)
+  const navigate = useNavigate()
+
+  // Handle clicking outside to close search
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowResults(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const loadInitials = () => {
     const stored = localStorage.getItem('talentforge_profile')
@@ -42,9 +57,39 @@ export default function Topbar({ title, onMenuClick, avatarSeed = 'TF' }) {
           <h1 className="font-heading font-semibold text-lg">{title}</h1>
         </div>
         <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-2 bg-white/70 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl2 px-3 py-2 w-64">
+          <div ref={searchRef} className="hidden md:flex items-center gap-2 bg-white/70 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-white dark:hover:bg-slate-800 focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/20 rounded-xl2 px-3 py-2 w-64 transition-all relative">
             <Search size={16} className="text-slate-400" />
-            <input placeholder="Search..." className="bg-transparent outline-none text-sm w-full placeholder:text-slate-400" />
+            <input 
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setShowResults(e.target.value.length > 0)
+              }}
+              onFocus={() => setShowResults(searchQuery.length > 0)}
+              placeholder="Search..." 
+              className="bg-transparent outline-none text-sm w-full placeholder:text-slate-400 text-slate-800 dark:text-white" 
+            />
+            
+            {/* Search Results Dropdown */}
+            {showResults && (
+              <div className="absolute top-full left-0 mt-2 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="p-2 space-y-1">
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-2 py-1">Quick Links</div>
+                  
+                  <button onClick={() => { navigate('/student/resume-analyzer'); setShowResults(false); setSearchQuery(''); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-primary-50 dark:hover:bg-primary-500/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors text-left group">
+                    <FileText size={16} className="text-slate-400 group-hover:text-primary-500" /> Resume Analyzer
+                  </button>
+                  
+                  <button onClick={() => { navigate('/student/mock-interview'); setShowResults(false); setSearchQuery(''); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-primary-50 dark:hover:bg-primary-500/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors text-left group">
+                    <Video size={16} className="text-slate-400 group-hover:text-primary-500" /> Mock Interviews
+                  </button>
+
+                  <button onClick={() => { navigate('/student/skill-gap'); setShowResults(false); setSearchQuery(''); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-primary-50 dark:hover:bg-primary-500/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors text-left group">
+                    <TrendingUp size={16} className="text-slate-400 group-hover:text-primary-500" /> Skill Gap Analysis
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           
           <button 
