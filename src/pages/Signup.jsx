@@ -14,6 +14,28 @@ export default function Signup() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    
+    // Save to profile so it doesn't say Jane Student
+    const fullName = e.target.fullName.value || 'Mohan';
+    const email = e.target.email.value || 'mohan@example.com';
+    
+    const profile = {
+      name: fullName,
+      email: email,
+      title: 'Aspiring Developer',
+      location: 'Not Specified', // Clear the default Coimbatore
+      phone: '+91'
+    };
+    
+    localStorage.setItem('talentforge_profile', JSON.stringify(profile));
+    localStorage.setItem('isAuthenticated', 'true');
+
+    // If student, send to login to trigger the resume upload onboarding
+    if (role === 'student') {
+      navigate('/login')
+      return
+    }
+
     const dest = roles.find((r) => r.id === role)?.dest ?? '/student/dashboard'
     navigate(dest)
   }
@@ -58,14 +80,14 @@ export default function Signup() {
             <label className="text-sm font-medium mb-1.5 block">Full name</label>
             <div className="relative">
               <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input required placeholder="Full Name" className="input-field pl-11" />
+              <input name="fullName" required placeholder="Full Name" className="input-field pl-11" />
             </div>
           </div>
           <div>
             <label className="text-sm font-medium mb-1.5 block">Email</label>
             <div className="relative">
               <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input type="email" required placeholder="you@example.com" className="input-field pl-11" />
+              <input name="email" type="email" required placeholder="you@example.com" className="input-field pl-11" />
             </div>
           </div>
           <div>

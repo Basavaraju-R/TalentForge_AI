@@ -4,13 +4,16 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
+      <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </GoogleOAuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )

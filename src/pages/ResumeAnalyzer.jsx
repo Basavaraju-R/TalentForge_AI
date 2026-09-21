@@ -50,6 +50,8 @@ export default function ResumeAnalyzer() {
   const [analyzed, setAnalyzed] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [results, setResults] = useState(null)
+  const [errorMsg, setErrorMsg] = useState('')
+  const [courseCompleted, setCourseCompleted] = useState(false)
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [isGenerated, setIsGenerated] = useState(false)
@@ -64,25 +66,56 @@ export default function ResumeAnalyzer() {
     e.preventDefault()
     setDragOver(false)
     const f = e.dataTransfer.files?.[0]
-    if (f) { setFile(f); setAnalyzed(false); setResults(null); setIsGenerated(false); }
+    if (f) { setFile(f); setAnalyzed(false); setResults(null); setIsGenerated(false); setErrorMsg(''); setCourseCompleted(false); }
   }, [])
 
   const onSelect = (e) => {
     const f = e.target.files?.[0]
-    if (f) { setFile(f); setAnalyzed(false); setResults(null); setIsGenerated(false); }
+    if (f) { setFile(f); setAnalyzed(false); setResults(null); setIsGenerated(false); setErrorMsg(''); setCourseCompleted(false); }
   }
 
   const handleAnalyze = () => {
+    if (!file) return;
+    
+    // Validate if it is a resume
+    const fileName = file.name.toLowerCase();
+    if (!fileName.includes('resume') && !fileName.includes('cv')) {
+      setErrorMsg('This document does not appear to be a resume. Please upload a valid resume or CV file.');
+      return;
+    }
+
     setIsAnalyzing(true)
     setAnalyzed(false)
     setIsGenerated(false)
+    setErrorMsg('')
     
     // Simulate AI processing delay
     setTimeout(() => {
-      setResults(generateResults())
+      const generatedResults = generateResults();
+      setResults(generatedResults)
       setIsAnalyzing(false)
       setAnalyzed(true)
+
+      // Store in database (localStorage)
+      localStorage.setItem('resume_analysis', JSON.stringify({
+        fileName: file.name,
+        results: generatedResults,
+        date: new Date().toISOString()
+      }));
+      localStorage.setItem('hasUploadedResume', 'true');
     }, 2000)
+  }
+
+  const handleCompleteCourse = () => {
+    setCourseCompleted(true);
+    // Add to earned certificates in localStorage
+    const existingCerts = JSON.parse(localStorage.getItem('earned_certificates') || '[]');
+    existingCerts.push({
+      title: 'DevOps & CI/CD Pipelines',
+      duration: 'Completed ' + new Date().toLocaleDateString(),
+      image: '/sql_cert.png' // Using existing placeholder image
+    });
+    localStorage.setItem('earned_certificates', JSON.stringify(existingCerts));
   }
 
   const handleGenerate = () => {
@@ -144,6 +177,13 @@ export default function ResumeAnalyzer() {
                   <p className="text-xs text-slate-500 dark:text-slate-400">{(file.size / 1024).toFixed(0)} KB</p>
                 </div>
               </div>
+              
+              {errorMsg && (
+                <div className="mb-4 p-3 bg-error/10 border border-error/20 rounded-xl text-error text-sm flex items-start gap-2 animate-fade-in">
+                  <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                  <p>{errorMsg}</p>
+                </div>
+              )}
               
               {!analyzed && !isAnalyzing && (
                 <button onClick={handleAnalyze} className="btn-primary w-full">
@@ -236,6 +276,30 @@ export default function ResumeAnalyzer() {
                   <button className="btn-primary mt-6 bg-success-500 hover:bg-success-600 text-white border-none" onClick={() => setActiveModal('download')}>
                     <Download size={16} /> Download Optimized Resume
                   </button>
+                )}
+              </div>
+
+              {/* Recommended Course Section */}
+              <div className="card animate-fade-in" style={{ animationDelay: '200ms' }}>
+                <h3 className="font-heading font-semibold mb-2 flex items-center gap-2">
+                  <Sparkles size={16} className="text-primary-500" /> Recommended Certification
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                  Based on your missing keywords, we recommend completing this course to improve your ATS score.
+                </p>
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 mb-4">
+                  <h4 className="font-semibold text-slate-900 dark:text-white mb-1">DevOps & CI/CD Pipelines</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Master modern deployment workflows and continuous integration.</p>
+                </div>
+                
+                {!courseCompleted ? (
+                  <button onClick={handleCompleteCourse} className="btn-secondary w-full">
+                    Enroll & Complete Course
+                  </button>
+                ) : (
+                  <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-success text-sm flex items-center justify-center gap-2">
+                    <CheckCircle2 size={16} /> Course Completed! Certificate added to your profile.
+                  </div>
                 )}
               </div>
             </>

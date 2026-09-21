@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { User, GraduationCap, Wrench, Briefcase, FolderKanban, Award, FileText, Link2, Pencil, X, Save, UploadCloud } from 'lucide-react'
 import DashboardShell from '../layout/DashboardShell.jsx'
 import CircularProgress from '../components/CircularProgress.jsx'
@@ -22,6 +23,24 @@ export default function Profile() {
       phone: '+91 98765 43210'
     }
   })
+
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.state?.googleUser) {
+      const gu = location.state.googleUser
+      setProfileData(prev => {
+        const updated = {
+          ...prev,
+          name: gu.name || prev.name,
+          email: gu.email || prev.email,
+          picture: gu.picture || prev.picture
+        }
+        localStorage.setItem('talentforge_profile', JSON.stringify(updated))
+        return updated
+      })
+    }
+  }, [location.state])
   
   const [sectionData, setSectionData] = useState({
     education: { degree: 'B.Tech CSE', year: '2026', institution: 'VIT Coimbatore' },
@@ -185,7 +204,14 @@ export default function Profile() {
   return (
     <DashboardShell items={studentNav} roleLabel="Student" title="Profile" avatarSeed="JS">
       <div className="card flex flex-col sm:flex-row items-center gap-8 relative overflow-hidden">
-        <CircularProgress value={85} size={140} sublabel="Profile complete" />
+        {profileData.picture ? (
+          <div className="relative">
+            <CircularProgress value={85} size={140} sublabel="Profile complete" />
+            <img src={profileData.picture} alt="Profile" className="absolute inset-0 m-auto w-[110px] h-[110px] rounded-full object-cover z-10" />
+          </div>
+        ) : (
+          <CircularProgress value={85} size={140} sublabel="Profile complete" />
+        )}
         <div className="text-center sm:text-left z-10">
           <h2 className="text-2xl font-heading font-bold">{profileData.name}</h2>
           <p className="text-slate-500 dark:text-slate-400 mt-1">{profileData.title} · {profileData.location}</p>

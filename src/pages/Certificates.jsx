@@ -2,8 +2,9 @@ import { Award, Download, BookOpen, Compass, Code, ExternalLink, GraduationCap, 
 import DashboardShell from '../layout/DashboardShell.jsx'
 import { studentNav } from '../data/navConfig.js'
 import { jsPDF } from 'jspdf'
+import { useState, useEffect } from 'react'
 
-const certificates = [
+const initialCertificates = [
   { title: 'Java Fundamentals', duration: 'Jan 2026 - Jun 2026', image: '/java_cert.png' },
   { title: 'SQL Essentials', duration: 'Mar 2026 - Jun 2026', image: '/sql_cert.png' },
 ]
@@ -60,6 +61,15 @@ const processSignatureImage = async () => {
 }
 
 export default function Certificates() {
+  const [certificates, setCertificates] = useState(initialCertificates);
+
+  useEffect(() => {
+    const earned = JSON.parse(localStorage.getItem('earned_certificates') || '[]');
+    if (earned.length > 0) {
+      setCertificates([...initialCertificates, ...earned]);
+    }
+  }, []);
+
   const handleDownload = async (certTitle, certDuration) => {
     let userName = "Jane Student";
     const stored = localStorage.getItem('talentforge_profile');
@@ -141,8 +151,8 @@ export default function Certificates() {
       </div>
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-12">
-        {certificates.map((c) => (
-          <div key={c.title} className="card card-hover flex flex-col p-4">
+        {certificates.map((c, i) => (
+          <div key={i} className="card card-hover flex flex-col p-4">
             <div className={`h-40 rounded-xl overflow-hidden mb-4 border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 relative group`}>
               <img src={c.image} alt={c.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">

@@ -1,15 +1,27 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { MapPin, Briefcase, IndianRupee, SlidersHorizontal, CheckCircle2, X, Loader2, Bot, AlertTriangle, ThumbsUp, ThumbsDown, Eye, FileText, ChevronDown, ChevronUp } from 'lucide-react'
 import DashboardShell from '../layout/DashboardShell.jsx'
 import { studentNav } from '../data/navConfig.js'
-import { jobs } from '../data/mockData.js'
+import { fetchJobs } from '../api.js'
 
 export default function JobPortal() {
+  const [jobsList, setJobsList] = useState([])
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true)
   const [remoteOnly, setRemoteOnly] = useState(false)
   const [sort, setSort] = useState('match')
   const [activeFilters, setActiveFilters] = useState([])
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [appliedJobs, setAppliedJobs] = useState({})
+  
+  useEffect(() => {
+    const loadJobs = async () => {
+      setIsLoadingJobs(true)
+      const data = await fetchJobs()
+      setJobsList(data)
+      setIsLoadingJobs(false)
+    }
+    loadJobs()
+  }, [])
   
   // Application Modal States
   const [activeJob, setActiveJob] = useState(null)
@@ -102,9 +114,9 @@ export default function JobPortal() {
   }
 
   const filtered = useMemo(() => {
-    let list = remoteOnly ? jobs.filter((j) => j.remote) : jobs
-    return [...list].sort((a, b) => (sort === 'match' ? b.match - a.match : a.company.localeCompare(b.company)))
-  }, [remoteOnly, sort])
+    let list = remoteOnly ? jobsList.filter((j) => j.location.toLowerCase().includes('remote')) : jobsList
+    return [...list].sort((a, b) => (sort === 'match' ? (b.match || 0) - (a.match || 0) : a.company.localeCompare(b.company)))
+  }, [remoteOnly, sort, jobsList])
 
   return (
     <DashboardShell items={studentNav} roleLabel="Student" title="Jobs" avatarSeed="JS">
@@ -147,7 +159,12 @@ export default function JobPortal() {
       </div>
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
-        {filtered.map((j) => {
+        {isLoadingJobs ? (
+          <div className="col-span-full py-12 flex flex-col items-center justify-center text-slate-500">
+             <Loader2 size={32} className="animate-spin mb-4 text-primary-500" />
+             <p>Loading jobs from database...</p>
+          </div>
+        ) : filtered.map((j) => {
           const hasApplied = appliedJobs[j.id];
           
           return (
@@ -163,9 +180,9 @@ export default function JobPortal() {
                 <span className="badge bg-success/10 text-success shrink-0 font-bold">{j.match}% match</span>
               </div>
               <div className="space-y-2 text-sm text-slate-500 dark:text-slate-400 mb-6">
-                <p className="flex items-center gap-2"><IndianRupee size={14} /> {j.salary}</p>
-                <p className="flex items-center gap-2"><MapPin size={14} /> {j.location} {j.remote && <span className="badge bg-secondary-500/10 text-secondary-500 ml-1">Remote</span>}</p>
-                <p className="flex items-center gap-2"><Briefcase size={14} /> {j.experience}</p>
+                <p className="flex items-center gap-2"><IndianRupee size={14} /> {j.salary || 'Competitive'}</p>
+                <p className="flex items-center gap-2"><MapPin size={14} /> {j.location} {j.location.toLowerCase().includes('remote') && <span className="badge bg-secondary-500/10 text-secondary-500 ml-1">Remote</span>}</p>
+                <p className="flex items-center gap-2"><Briefcase size={14} /> {j.experience || 'Any Experience'}</p>
               </div>
               <button 
                 onClick={() => openApplication(j)}

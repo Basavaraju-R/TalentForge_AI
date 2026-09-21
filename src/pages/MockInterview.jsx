@@ -1,41 +1,112 @@
 import { useState, useRef, useEffect } from 'react'
-import { Bot, Mic, Send, Camera, CameraOff, Timer, Code2, User, Loader2, RotateCcw, Square, Play } from 'lucide-react'
+import { Bot, Mic, Send, Camera, CameraOff, Timer, Code2, User, Loader2, RotateCcw, Square, Play, ShieldAlert, Award, AlertTriangle } from 'lucide-react'
 import DashboardShell from '../layout/DashboardShell.jsx'
 import { studentNav } from '../data/navConfig.js'
+import { saveInterview } from '../api.js'
 
-const initialMessages = [
-  { from: 'ai', text: "Hi! I'm your AI interviewer today. Let's start with a behavioral question: tell me about a project you're proud of." },
-]
+// Dynamic question generator based on difficulty
+const questionBanks = {
+  basic: {
+    behavioral: [
+      "What are your primary technical skills?",
+      "Can you describe a time you worked successfully in a team?",
+      "What motivates you to learn new technologies?"
+    ],
+    technical: [
+      "What is the difference between let, const, and var in JavaScript?",
+      "Can you explain the basic concept of an API?",
+      "What is version control and why is it useful?"
+    ],
+    gk: [
+      "What does 'cloud computing' mean to you?",
+      "How is Artificial Intelligence currently impacting software development?"
+    ],
+    aptitude: [
+      "If a project takes 3 devs 4 days to complete, how long would it take 6 devs?",
+      "Describe how you would break down a complex problem into smaller parts."
+    ]
+  },
+  intermediate: {
+    behavioral: [
+      "How do you handle disagreements with a team member on a technical decision?",
+      "Describe a time you had to learn a new framework very quickly.",
+      "What is your approach to managing tight deadlines?"
+    ],
+    technical: [
+      "How do you handle state management in a medium-to-large React application?",
+      "Can you explain the differences between SQL and NoSQL databases?",
+      "Describe how a RESTful API differs from GraphQL."
+    ],
+    gk: [
+      "What are the key benefits of microservices architecture over monoliths?",
+      "How does containerization (like Docker) improve the deployment process?"
+    ],
+    aptitude: [
+      "How would you troubleshoot an issue where an application works locally but fails in production?",
+      "If you have a slow-running SQL query, what steps would you take to optimize it?"
+    ]
+  },
+  advanced: {
+    behavioral: [
+      "Describe a time you optimized a highly scaled system.",
+      "How do you mentor junior developers and advocate for best practices?",
+      "Tell me about a time a critical system failed under your watch. How did you handle it?"
+    ],
+    technical: [
+      "How would you implement a rate limiter algorithm?",
+      "Explain how you would design a distributed caching layer.",
+      "What are the trade-offs of using Event Sourcing in a distributed system?"
+    ],
+    gk: [
+      "How do Kubernetes and Service Meshes interact in a cloud-native environment?",
+      "What are the security implications of serverless architectures?"
+    ],
+    aptitude: [
+      "Design a scalable notification system that can handle 1 million push notifications per minute.",
+      "How would you ensure data consistency across multiple microservices without distributed transactions?"
+    ]
+  }
+};
 
-const aiResponses = [
-  "That sounds interesting. Can you quantify the impact it had on the team or product?",
-  "I see. What was the most challenging part of that task, and how did you overcome it?",
-  "Could you explain the technical decisions behind that approach?",
-  "Great. Let's move on to a technical question: How would you design a scalable notification system?",
-  "Interesting architecture. How would you handle potential bottlenecks in that design?",
-  "Thank you for sharing that. I think we have enough information for today."
-]
+const transitionPhrases = [
+  "That makes a lot of sense.",
+  "Interesting perspective.",
+  "I see. That's a solid approach.",
+  "Great answer.",
+  "Thank you for sharing that.",
+  "Understood. Let's pivot to something else."
+];
+
+const pushbackPhrases = [
+  "Could you elaborate a bit more on that?",
+  "Can you provide a specific example to illustrate your point?",
+  "That's a bit brief. Could you expand on your reasoning?",
+  "I'd love to hear more detail about how you achieved that."
+];
 
 const initialStaticScores = [
-  { label: 'Communication', value: 85 },
-  { label: 'Technical Knowledge', value: 78 },
-  { label: 'Confidence', value: 80 },
-  { label: 'Problem Solving', value: 74 },
-  { label: 'Fluency', value: 88 },
+  { label: 'Communication', value: 0 },
+  { label: 'Technical Knowledge', value: 0 },
+  { label: 'Confidence', value: 0 },
+  { label: 'Problem Solving', value: 0 },
+  { label: 'Fluency', value: 0 },
 ]
 
 export default function MockInterview() {
-  const [messages, setMessages] = useState(initialMessages)
+  const [difficulty, setDifficulty] = useState('') // '', 'basic', 'intermediate', 'advanced'
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [finished, setFinished] = useState(false)
   const [mode, setMode] = useState('text')
   
   // New Interactive States
   const [hasStarted, setHasStarted] = useState(false)
-  const [cameraOn, setCameraOn] = useState(false) // Default off until started
+  const [cameraOn, setCameraOn] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const [responseCount, setResponseCount] = useState(0)
+  const [violation, setViolation] = useState(false)
+  const [certificateAwarded, setCertificateAwarded] = useState(false)
   
   // Timer State
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -46,11 +117,39 @@ export default function MockInterview() {
   // Analysis States
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analyzingProgress, setAnalyzingProgress] = useState(0)
-  const [overallRating, setOverallRating] = useState(81)
+  const [overallRating, setOverallRating] = useState(0)
   const [dynamicScores, setDynamicScores] = useState(initialStaticScores)
   
   const chatEndRef = useRef(null)
   const videoRef = useRef(null)
+
+  // Tab switching / cheating detection
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && hasStarted && !finished && !isAnalyzing) {
+        // User switched tabs while interview is active!
+        handleViolation("Tab switching is strictly prohibited during the interview.")
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
+  }, [hasStarted, finished, isAnalyzing])
+
+  const handleViolation = (reason) => {
+    setViolation(true)
+    setFinished(true)
+    setCameraOn(false)
+    setIsRecording(false)
+    setOverallRating(0)
+    setDynamicScores([
+      { label: 'Communication', value: 0 },
+      { label: 'Technical Knowledge', value: 0 },
+      { label: 'Confidence', value: 0 },
+      { label: 'Problem Solving', value: 0 },
+      { label: 'Fluency', value: 0 },
+    ])
+    alert(`INTERVIEW TERMINATED: ${reason}`)
+  }
 
   // Initialize Speech Recognition
   useEffect(() => {
@@ -71,7 +170,7 @@ export default function MockInterview() {
     }
   }, [])
 
-  // Camera Effect - Fixed Race Conditions
+  // Camera Effect - Mandatory for interview
   useEffect(() => {
     let localStream = null;
     let isCancelled = false;
@@ -88,7 +187,12 @@ export default function MockInterview() {
             videoRef.current.srcObject = mediaStream;
           }
         })
-        .catch(err => console.error("Camera error:", err));
+        .catch(err => {
+          console.error("Camera error:", err)
+          if (hasStarted) {
+            handleViolation("Camera access is mandatory for proctoring. Access denied.")
+          }
+        });
     }
 
     return () => {
@@ -97,12 +201,12 @@ export default function MockInterview() {
         localStream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [cameraOn]);
+  }, [cameraOn, hasStarted]);
 
   // Timer Effect
   useEffect(() => {
     let interval = null
-    if (hasStarted && !finished && !isAnalyzing) {
+    if (hasStarted && !finished && !isAnalyzing && !violation) {
       interval = setInterval(() => {
         setElapsedSeconds(prev => prev + 1)
       }, 1000)
@@ -110,19 +214,23 @@ export default function MockInterview() {
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [hasStarted, finished, isAnalyzing])
+  }, [hasStarted, finished, isAnalyzing, violation])
 
-  // Format Timer
   const formatTime = (totalSeconds) => {
     const mins = Math.floor(totalSeconds / 60)
     const secs = totalSeconds % 60
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
-  // Auto-scroll to bottom of chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isTyping])
+
+  const selectDifficulty = (level) => {
+    setDifficulty(level)
+    const firstQ = questionBanks[level].behavioral[0];
+    setMessages([{ from: 'ai', text: `Welcome to your ${level} Mock Interview. Let's start with a behavioral question: ${firstQ}` }])
+  }
 
   const startInterview = () => {
     if (!hasStarted) {
@@ -142,12 +250,40 @@ export default function MockInterview() {
     
     setIsTyping(true)
     
-    // Simulate AI thinking and replying
     setTimeout(() => {
       setIsTyping(false)
-      const aiText = aiResponses[Math.min(responseCount, aiResponses.length - 1)]
-      setMessages([...next, { from: 'ai', text: aiText }])
-      setResponseCount(prev => prev + 1)
+      
+      const wordCount = textToSend.trim().split(/\s+/).length;
+      
+      if (wordCount < 15 && responseCount < 6) {
+        // User gave a short answer. Push back.
+        const pushback = pushbackPhrases[Math.floor(Math.random() * pushbackPhrases.length)];
+        setMessages([...next, { from: 'ai', text: pushback }]);
+      } else {
+        // Good answer or max pushbacks. Move to next category.
+        let aiText = "";
+        
+        if (responseCount >= 6) {
+           aiText = "Thank you for sharing that. I think we have enough information for today.";
+           // We could auto-end here or wait for them to click end
+        } else {
+           const transition = transitionPhrases[Math.floor(Math.random() * transitionPhrases.length)];
+           
+           // Rotate categories: Behavioral -> Technical -> GK -> Aptitude
+           const categories = ['behavioral', 'technical', 'gk', 'aptitude'];
+           const category = categories[(responseCount + 1) % categories.length];
+           const bank = questionBanks[difficulty || 'basic'][category];
+           
+           // Pick a random question from that category
+           const question = bank[Math.floor(Math.random() * bank.length)];
+           
+           aiText = `${transition} Now for a ${category} question: ${question}`;
+           
+           setResponseCount(prev => prev + 1)
+        }
+        
+        setMessages([...next, { from: 'ai', text: aiText }])
+      }
     }, 1500)
   }
 
@@ -157,9 +293,8 @@ export default function MockInterview() {
       setIsRecording(false)
       if (recognition) recognition.stop()
       
-      // Delay slightly to let final transcription settle before sending
       setTimeout(() => {
-        send(null) // Send whatever was transcribed into the input state
+        send(null) 
       }, 400)
     } else {
       setIsRecording(true)
@@ -167,14 +302,13 @@ export default function MockInterview() {
       if (recognition) {
         recognition.start()
       } else {
-        // Fallback if browser doesn't support speech recognition
         setInput("My browser doesn't support speech recognition, so here is a fallback text!")
       }
     }
   }
 
   const handleEndInterview = () => {
-    setCameraOn(false) // Ensure camera light turns off
+    setCameraOn(false) 
     if (isRecording && recognition) {
       recognition.stop()
       setIsRecording(false)
@@ -184,15 +318,12 @@ export default function MockInterview() {
     setAnalyzingProgress(0)
     
     let progress = 0
-    // Simulate a 10 second processing delay (10 ticks of 1 second, jumping by ~10-15%)
     const interval = setInterval(() => {
-      progress += Math.random() * 12 + 5 // increment by 5 to 17%
+      progress += Math.random() * 12 + 5 
       if (progress >= 100) {
         progress = 100
         clearInterval(interval)
         
-        // Dynamically calculate scores based on how far they got in the interview
-        // If they barely answered anything, score is lower. If they answered many, score is higher.
         const baseScore = Math.min(45 + (responseCount * 8), 92)
         const generateScore = () => Math.min(Math.max(baseScore + Math.floor(Math.random() * 14 - 7), 30), 99)
         
@@ -209,7 +340,32 @@ export default function MockInterview() {
         setDynamicScores(newScores)
         setOverallRating(avgScore)
         
-        // Wait a tiny bit at 100% before revealing
+        // Award certificate logic
+        if (avgScore >= 70 && difficulty === 'advanced') {
+          setCertificateAwarded(true)
+          const existingCerts = JSON.parse(localStorage.getItem('earned_certificates') || '[]');
+          existingCerts.push({
+            title: 'Advanced AI Interview Completion',
+            duration: 'Completed ' + new Date().toLocaleDateString(),
+            image: '/sql_cert.png' 
+          });
+          localStorage.setItem('earned_certificates', JSON.stringify(existingCerts));
+        }
+
+        // Save to Database
+        const feedbackJson = JSON.stringify({
+          scores: newScores,
+          difficulty: difficulty,
+          responseCount: responseCount
+        });
+
+        saveInterview({
+          student: 1, // Default test student
+          scheduled_at: new Date().toISOString(),
+          feedback: feedbackJson,
+          score: avgScore
+        }).catch(console.error);
+
         setTimeout(() => {
           setIsAnalyzing(false)
           setFinished(true)
@@ -220,7 +376,8 @@ export default function MockInterview() {
   }
 
   const resetInterview = () => {
-    setMessages(initialMessages)
+    setDifficulty('')
+    setMessages([])
     setFinished(false)
     setIsAnalyzing(false)
     setResponseCount(0)
@@ -229,6 +386,40 @@ export default function MockInterview() {
     setHasStarted(false)
     setCameraOn(false)
     setAnalyzingProgress(0)
+    setViolation(false)
+    setCertificateAwarded(false)
+  }
+
+  if (!difficulty) {
+    return (
+      <DashboardShell items={studentNav} roleLabel="Student" title="AI Mock Interview" avatarSeed="JS">
+        <div className="card max-w-2xl mx-auto text-center py-12 animate-fade-in">
+          <div className="h-16 w-16 bg-primary-500/10 text-primary-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ShieldAlert size={32} />
+          </div>
+          <h2 className="text-2xl font-heading font-bold mb-4">Proctored AI Interview</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-lg mx-auto">
+            This interview is proctored. Your camera must remain on. Copy/pasting and tab switching are strictly prohibited and will result in immediate termination. 
+            Choose your difficulty level to begin.
+          </p>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <button onClick={() => selectDifficulty('basic')} className="card hover:border-success transition-colors cursor-pointer text-left">
+              <h3 className="font-semibold text-success mb-2">Basic</h3>
+              <p className="text-xs text-slate-500">Foundational questions to test your core understanding.</p>
+            </button>
+            <button onClick={() => selectDifficulty('intermediate')} className="card hover:border-warning transition-colors cursor-pointer text-left">
+              <h3 className="font-semibold text-warning mb-2">Intermediate</h3>
+              <p className="text-xs text-slate-500">Scenario-based questions requiring practical experience.</p>
+            </button>
+            <button onClick={() => selectDifficulty('advanced')} className="card hover:border-danger transition-colors cursor-pointer text-left relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-danger text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">CERTIFICATE</div>
+              <h3 className="font-semibold text-danger mb-2">Advanced</h3>
+              <p className="text-xs text-slate-500">Deep technical dives. Passing awards a verified certificate.</p>
+            </button>
+          </div>
+        </div>
+      </DashboardShell>
+    )
   }
 
   return (
@@ -240,8 +431,8 @@ export default function MockInterview() {
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl2 bg-brand-gradient flex items-center justify-center text-white"><Bot size={18} /></div>
                 <div>
-                  <p className="font-semibold text-sm">AI Interviewer</p>
-                  <p className="text-xs text-success flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" /> Live session</p>
+                  <p className="font-semibold text-sm">AI Interviewer ({difficulty})</p>
+                  <p className="text-xs text-success flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" /> Live Proctored Session</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
@@ -298,7 +489,7 @@ export default function MockInterview() {
                       className="absolute inset-0 w-full h-full object-cover transform -scale-x-100 bg-gradient-to-br from-slate-700 to-slate-900"
                     />
                     <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-danger animate-pulse" />
-                    <span className="absolute bottom-1 left-2 text-[10px] text-white font-medium tracking-wide drop-shadow-md">Live Analysis</span>
+                    <span className="absolute bottom-1 left-2 text-[10px] text-white font-medium tracking-wide drop-shadow-md">Proctored</span>
                   </div>
                 </div>
               )}
@@ -333,6 +524,10 @@ export default function MockInterview() {
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && send(null)}
                       onFocus={startInterview}
+                      onPaste={(e) => {
+                        e.preventDefault()
+                        alert("PROCTORING ALERT: Copying and pasting is not allowed during the interview.")
+                      }}
                       placeholder="Type your answer…"
                       className="input-field flex-1"
                       disabled={isTyping}
@@ -381,8 +576,37 @@ export default function MockInterview() {
           </div>
           <p className="text-xs text-slate-400 font-semibold mt-4">{Math.floor(analyzingProgress)}% Complete</p>
         </div>
+      ) : violation ? (
+        <div className="card max-w-2xl mx-auto flex flex-col items-center justify-center text-center py-16 animate-fade-in border-2 border-danger/50 bg-danger/5">
+          <div className="h-20 w-20 bg-danger/20 text-danger rounded-full flex items-center justify-center mb-6">
+            <AlertTriangle size={40} />
+          </div>
+          <h2 className="text-3xl font-heading font-bold mb-4 text-danger">Interview Terminated</h2>
+          <p className="text-slate-700 dark:text-slate-300 text-lg mb-8 max-w-md">
+            A proctoring violation was detected. Switching tabs or minimizing the application is strictly prohibited during an active interview session.
+          </p>
+          <button onClick={resetInterview} className="btn-primary">
+            Acknowledge & Return
+          </button>
+        </div>
       ) : (
         <div className="grid lg:grid-cols-3 gap-6 animate-fade-in">
+          {certificateAwarded && (
+             <div className="lg:col-span-3 card bg-brand-gradient text-white flex flex-col sm:flex-row items-center justify-between gap-4 py-6 px-8 animate-rise shadow-xl border border-white/20">
+               <div className="flex items-center gap-4">
+                 <div className="h-14 w-14 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                   <Award size={28} className="text-white" />
+                 </div>
+                 <div>
+                   <h3 className="text-xl font-heading font-bold mb-1">Congratulations!</h3>
+                   <p className="text-white/80 text-sm">You passed the Advanced Interview and earned a new certificate.</p>
+                 </div>
+               </div>
+               <button onClick={() => window.location.href = '/student/certificates'} className="px-6 py-2 bg-white text-primary-600 font-semibold rounded-lg hover:bg-slate-50 transition-colors shadow-soft whitespace-nowrap">
+                 View Certificate
+               </button>
+             </div>
+          )}
           <div className="card lg:col-span-1 flex flex-col items-center justify-center text-center py-8">
             <div className="text-5xl font-heading font-extrabold bg-brand-gradient bg-clip-text text-transparent mb-2">{overallRating}%</div>
             <p className="text-sm font-semibold text-slate-900 dark:text-white">Overall Rating</p>
