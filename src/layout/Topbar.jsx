@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Bell, Search, Menu, Crown, X, QrCode, FileText, Video, TrendingUp } from 'lucide-react'
+import { Bell, Search, Menu, Crown, X, QrCode, FileText, Video, TrendingUp, ArrowRight } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import ThemeToggle from '../components/ThemeToggle.jsx'
 
@@ -10,6 +10,7 @@ export default function Topbar({ title, onMenuClick, avatarSeed = 'TF' }) {
   const [showResults, setShowResults] = useState(false)
   const searchRef = useRef(null)
   const navigate = useNavigate()
+  const [userTier, setUserTier] = useState('basic')
 
   // Handle clicking outside to close search
   useEffect(() => {
@@ -19,6 +20,10 @@ export default function Topbar({ title, onMenuClick, avatarSeed = 'TF' }) {
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
+    
+    // Check tier
+    setUserTier(localStorage.getItem('userTier') || 'basic')
+
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
@@ -92,12 +97,14 @@ export default function Topbar({ title, onMenuClick, avatarSeed = 'TF' }) {
             )}
           </div>
           
-          <button 
-            onClick={() => setIsPremiumModalOpen(true)}
-            className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-2 rounded-xl2 text-sm font-bold shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-0.5"
-          >
-            <Crown size={16} className="text-yellow-200" /> Upgrade
-          </button>
+          {userTier !== 'premium' && (
+            <button 
+              onClick={() => setIsPremiumModalOpen(true)}
+              className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-2 rounded-xl2 text-sm font-bold shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-0.5"
+            >
+              <Crown size={16} className="text-yellow-200" /> Upgrade
+            </button>
+          )}
 
           <Link to="/notifications" className="h-10 w-10 rounded-xl2 flex items-center justify-center glass relative hover:scale-105 transition-transform">
             <Bell size={17} />
@@ -133,19 +140,35 @@ export default function Topbar({ title, onMenuClick, avatarSeed = 'TF' }) {
             
             <div className="p-8 flex flex-col items-center bg-slate-50 dark:bg-slate-950">
               <div className="bg-white p-4 rounded-2xl shadow-md border border-slate-200 mb-6 relative">
-                {/* Simulated QR Code placeholder for the user's specific image */}
-                <div className="w-48 h-48 bg-slate-100 rounded-xl flex items-center justify-center border-2 border-dashed border-slate-300">
-                  <QrCode size={64} className="text-slate-400" />
-                </div>
+                <img 
+                  src="/scanner.jpg" 
+                  alt="UPI Payment QR Code" 
+                  className="w-48 h-48 object-contain bg-white rounded-xl" 
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=basava9240-1@okicici&pn=TalentForge";
+                  }}
+                />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-sm border border-slate-100">
                   <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-xs">GPay</div>
                 </div>
               </div>
               
-              <div className="text-center space-y-1 w-full bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-white/10">
+              <div className="text-center space-y-1 w-full bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-white/10 mb-4">
                 <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">UPI ID: basava9240-1@okicici</p>
                 <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">Scan to pay with any UPI app</p>
               </div>
+
+              <button 
+                onClick={() => {
+                  localStorage.setItem('userTier', 'premium');
+                  setIsPremiumModalOpen(false);
+                  window.location.reload();
+                }}
+                className="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+              >
+                I have completed the payment <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         </div>

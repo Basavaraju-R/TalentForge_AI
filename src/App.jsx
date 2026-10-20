@@ -1,42 +1,52 @@
 import { Routes, Route } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, Suspense, lazy } from 'react'
+import { Loader2 } from 'lucide-react'
+
 import Landing from './pages/Landing.jsx'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 
-import StudentDashboard from './pages/StudentDashboard.jsx'
-import ResumeAnalyzer from './pages/ResumeAnalyzer.jsx'
-import ATSScore from './pages/ATSScore.jsx'
-import SkillGap from './pages/SkillGap.jsx'
-import LearningRoadmap from './pages/LearningRoadmap.jsx'
-import MockInterview from './pages/MockInterview.jsx'
-import CareerCoach from './pages/CareerCoach.jsx'
-import JobPortal from './pages/JobPortal.jsx'
-import Applications from './pages/Applications.jsx'
-import Certificates from './pages/Certificates.jsx'
+// Lazy loaded pages to optimize performance
+const StudentDashboard = lazy(() => import('./pages/StudentDashboard.jsx'))
+const ResumeAnalyzer = lazy(() => import('./pages/ResumeAnalyzer.jsx'))
+const ATSScore = lazy(() => import('./pages/ATSScore.jsx'))
+const SkillGap = lazy(() => import('./pages/SkillGap.jsx'))
+const LearningRoadmap = lazy(() => import('./pages/LearningRoadmap.jsx'))
+const MockInterview = lazy(() => import('./pages/MockInterview.jsx'))
+const CareerCoach = lazy(() => import('./pages/CareerCoach.jsx'))
+const JobPortal = lazy(() => import('./pages/JobPortal.jsx'))
+const Applications = lazy(() => import('./pages/Applications.jsx'))
+const Certificates = lazy(() => import('./pages/Certificates.jsx'))
 
-import RecruiterDashboard from './pages/RecruiterDashboard.jsx'
-import RecruiterJobs from './pages/RecruiterJobs.jsx'
-import Applicants from './pages/Applicants.jsx'
-import CandidateScreening from './pages/CandidateScreening.jsx'
-import InterviewSchedule from './pages/InterviewSchedule.jsx'
-import RecruiterReports from './pages/RecruiterReports.jsx'
+const RecruiterDashboard = lazy(() => import('./pages/RecruiterDashboard.jsx'))
+const RecruiterJobs = lazy(() => import('./pages/RecruiterJobs.jsx'))
+const Applicants = lazy(() => import('./pages/Applicants.jsx'))
+const CandidateScreening = lazy(() => import('./pages/CandidateScreening.jsx'))
+const InterviewSchedule = lazy(() => import('./pages/InterviewSchedule.jsx'))
+const RecruiterReports = lazy(() => import('./pages/RecruiterReports.jsx'))
 
-import InstitutionDashboard from './pages/InstitutionDashboard.jsx'
-import AdminDashboard from './pages/AdminDashboard.jsx'
+const InstitutionDashboard = lazy(() => import('./pages/InstitutionDashboard.jsx'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'))
 
-import Profile from './pages/Profile.jsx'
-import Notifications from './pages/Notifications.jsx'
-import Settings from './pages/Settings.jsx'
-import NotFound from './pages/NotFound.jsx'
+const Profile = lazy(() => import('./pages/Profile.jsx'))
+const Notifications = lazy(() => import('./pages/Notifications.jsx'))
+const Settings = lazy(() => import('./pages/Settings.jsx'))
+const NotFound = lazy(() => import('./pages/NotFound.jsx'))
 
-import About from './pages/About.jsx'
-import Pricing from './pages/Pricing.jsx'
-import Contact from './pages/Contact.jsx'
-import Privacy from './pages/Privacy.jsx'
+const About = lazy(() => import('./pages/About.jsx'))
+const Pricing = lazy(() => import('./pages/Pricing.jsx'))
+const Contact = lazy(() => import('./pages/Contact.jsx'))
+const Privacy = lazy(() => import('./pages/Privacy.jsx'))
+
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import SplashScreen from './components/SplashScreen.jsx'
 import ChatbotWidget from './components/ChatbotWidget.jsx'
+
+const FallbackLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+    <Loader2 size={48} className="animate-spin text-brand-500" />
+  </div>
+)
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -45,7 +55,8 @@ export default function App() {
     <>
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       <ChatbotWidget />
-      <Routes>
+      <Suspense fallback={<FallbackLoader />}>
+        <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
@@ -87,6 +98,7 @@ export default function App() {
       {/* Catch All */}
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
     </>
   )
 }

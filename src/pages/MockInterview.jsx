@@ -3,6 +3,11 @@ import { Bot, Mic, Send, Camera, CameraOff, Timer, Code2, User, Loader2, RotateC
 import DashboardShell from '../layout/DashboardShell.jsx'
 import { studentNav } from '../data/navConfig.js'
 import { saveInterview } from '../api.js'
+import { GoogleGenerativeAI } from '@google/generative-ai'
+
+// Initialize Gemini (Will fallback to hardcoded if key is missing)
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const genAI = API_KEY && API_KEY !== 'your_api_key_here' ? new GoogleGenerativeAI(API_KEY) : null;
 
 // Dynamic question generator based on difficulty
 const questionBanks = {
@@ -229,7 +234,16 @@ export default function MockInterview() {
   const selectDifficulty = (level) => {
     setDifficulty(level)
     const firstQ = questionBanks[level].behavioral[0];
-    setMessages([{ from: 'ai', text: `Welcome to your ${level} Mock Interview. Let's start with a behavioral question: ${firstQ}` }])
+    const aiText = `Welcome to your ${level} Mock Interview. Let's start with a behavioral question: ${firstQ}`;
+    setMessages([{ from: 'ai', text: aiText }])
+    
+    // AI speaks the first question!
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(aiText);
+      utterance.rate = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
   }
 
   const startInterview = () => {
@@ -239,7 +253,7 @@ export default function MockInterview() {
     }
   }
 
-  const send = (overrideText = null) => {
+  const send = async (overrideText = null) => {
     startInterview()
     const textToSend = overrideText !== null ? overrideText : input
     if (!textToSend.trim()) return
@@ -250,41 +264,57 @@ export default function MockInterview() {
     
     setIsTyping(true)
     
-    setTimeout(() => {
-      setIsTyping(false)
+    try {
+      let aiText = "";
       
-      const wordCount = textToSend.trim().split(/\s+/).length;
-      
-      if (wordCount < 15 && responseCount < 6) {
-        // User gave a short answer. Push back.
-        const pushback = pushbackPhrases[Math.floor(Math.random() * pushbackPhrases.length)];
-        setMessages([...next, { from: 'ai', text: pushback }]);
-      } else {
-        // Good answer or max pushbacks. Move to next category.
-        let aiText = "";
+      // If Gemini is configured, use it for intelligent grading and response
+      if (genAI && responseCount < 6) {
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const prompt = `You are a strict technical recruiter conducting a ${difficulty} level interview. 
+        The candidate just said: "${textToSend}". 
+        Evaluate their answer briefly. If they didn't answer properly, push back. If they did, ask a new follow up technical or behavioral question. Keep it under 2 sentences. Speak directly to them.`;
         
-        if (responseCount >= 6) {
-           aiText = "Thank you for sharing that. I think we have enough information for today.";
-           // We could auto-end here or wait for them to click end
+        const result = await model.generateContent(prompt);
+        aiText = result.response.text().replace(/\*/g, ''); // Clean markdown
+        setResponseCount(prev => prev + 1);
+      } 
+      else {
+        // Fallback to hardcoded logic if Gemini API key is missing
+        const wordCount = textToSend.trim().split(/\s+/).length;
+        if (wordCount < 15 && responseCount < 6) {
+          aiText = pushbackPhrases[Math.floor(Math.random() * pushbackPhrases.length)];
         } else {
-           const transition = transitionPhrases[Math.floor(Math.random() * transitionPhrases.length)];
-           
-           // Rotate categories: Behavioral -> Technical -> GK -> Aptitude
-           const categories = ['behavioral', 'technical', 'gk', 'aptitude'];
-           const category = categories[(responseCount + 1) % categories.length];
-           const bank = questionBanks[difficulty || 'basic'][category];
-           
-           // Pick a random question from that category
-           const question = bank[Math.floor(Math.random() * bank.length)];
-           
-           aiText = `${transition} Now for a ${category} question: ${question}`;
-           
-           setResponseCount(prev => prev + 1)
+          if (responseCount >= 6) {
+             aiText = "Thank you for sharing that. I think we have enough information for today. Please click the Stop button to review your feedback.";
+          } else {
+             const transition = transitionPhrases[Math.floor(Math.random() * transitionPhrases.length)];
+             const categories = ['behavioral', 'technical', 'gk', 'aptitude'];
+             const category = categories[(responseCount + 1) % categories.length];
+             const bank = questionBanks[difficulty || 'basic'][category];
+             const question = bank[Math.floor(Math.random() * bank.length)];
+             
+             aiText = `${transition} Now for a ${category} question: ${question}`;
+             setResponseCount(prev => prev + 1)
+          }
         }
-        
-        setMessages([...next, { from: 'ai', text: aiText }])
       }
-    }, 1500)
+      
+      setMessages([...next, { from: 'ai', text: aiText }])
+      
+      // Voice Output (Text-to-Speech)
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(aiText);
+        utterance.rate = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
+      
+    } catch (error) {
+      console.error("AI Error:", error);
+      setMessages([...next, { from: 'ai', text: "I'm having trouble analyzing that. Let's move to the next question." }])
+    } finally {
+      setIsTyping(false)
+    }
   }
 
   const toggleRecording = () => {

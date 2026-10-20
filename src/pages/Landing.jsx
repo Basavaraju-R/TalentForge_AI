@@ -161,10 +161,10 @@ export default function Landing() {
                 {a.cta.label} <ArrowRight size={16} />
               </Link>
             </div>
-            <div className="card h-72 flex items-center justify-center bg-brand-gradient-soft">
-              {a.id === 'students' && <GraduationCap size={96} className="text-primary-500/40" />}
-              {a.id === 'recruiters' && <Users size={96} className="text-secondary-500/40" />}
-              {a.id === 'institutions' && <BarChart3 size={96} className="text-primary-500/40" />}
+            <div className="card h-72 flex items-center justify-center bg-brand-gradient-soft overflow-hidden !p-0">
+              {a.id === 'students' && <img src="/student_dashboard_ui.jpg" alt="Student Dashboard" className="w-full h-full object-cover" />}
+              {a.id === 'recruiters' && <img src="/recruiter_dashboard_ui.jpg" alt="Recruiter Dashboard" className="w-full h-full object-cover" />}
+              {a.id === 'institutions' && <img src="/institution_dashboard_ui.jpg" alt="Institution Dashboard" className="w-full h-full object-cover" />}
             </div>
           </div>
         </section>

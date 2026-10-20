@@ -1,13 +1,12 @@
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children }) {
   const location = useLocation();
+  const { currentUser } = useAuth();
 
-  // Simple auth check - you can replace this with your actual auth logic
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-
-  if (!isAuthenticated) {
-    // Redirect to login and save the location they were trying to go to
+  // If there is no currentUser (from Firebase OR fallback mock), redirect to login
+  if (!currentUser) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

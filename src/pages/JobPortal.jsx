@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { MapPin, Briefcase, IndianRupee, SlidersHorizontal, CheckCircle2, X, Loader2, Bot, AlertTriangle, ThumbsUp, ThumbsDown, Eye, FileText, ChevronDown, ChevronUp } from 'lucide-react'
+import { MapPin, Briefcase, IndianRupee, SlidersHorizontal, CheckCircle2, X, Loader2, Bot, AlertTriangle, ThumbsUp, ThumbsDown, Eye, FileText, ChevronDown, ChevronUp, Award, ShieldAlert, Crown, Lock } from 'lucide-react'
 import DashboardShell from '../layout/DashboardShell.jsx'
 import { studentNav } from '../data/navConfig.js'
 import { fetchJobs } from '../api.js'
@@ -12,8 +12,19 @@ export default function JobPortal() {
   const [activeFilters, setActiveFilters] = useState([])
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [appliedJobs, setAppliedJobs] = useState({})
+  const [hasAdvancedCert, setHasAdvancedCert] = useState(false)
+  const [isPremium, setIsPremium] = useState(false)
   
   useEffect(() => {
+    // Check if user has advanced cert to unlock direct offers
+    const certs = JSON.parse(localStorage.getItem('earned_certificates') || '[]')
+    const hasCert = certs.some(c => c.title === 'Advanced AI Interview Completion')
+    setHasAdvancedCert(hasCert)
+
+    // Check Premium
+    const profile = JSON.parse(localStorage.getItem('talentforge_profile') || '{}');
+    if (profile.isPremium) setIsPremium(true);
+
     const loadJobs = async () => {
       setIsLoadingJobs(true)
       const data = await fetchJobs()
@@ -158,6 +169,33 @@ export default function JobPortal() {
         )}
       </div>
 
+      <div className="mb-8 mt-6">
+        <h2 className="text-lg font-heading font-bold mb-4 flex items-center gap-2">
+          <Award size={18} className="text-primary-500" /> Direct Offers & Fast-Tracks
+        </h2>
+        {hasAdvancedCert ? (
+          <div className="card bg-brand-gradient-soft border border-primary-500/20 flex flex-col sm:flex-row gap-4 items-center justify-between animate-fade-in slide-up">
+            <div className="flex items-center gap-4">
+               <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center text-2xl shadow-sm">🇬</div>
+               <div>
+                 <h3 className="font-semibold text-slate-900 dark:text-white">Google recruiter wants to connect!</h3>
+                 <p className="text-sm text-slate-600 dark:text-slate-400">Based on your 92% Advanced AI Mock Interview score.</p>
+               </div>
+            </div>
+            <button className="btn-primary shrink-0" onClick={() => alert("Simulating a direct connection with Google Recruiter!")}>View Offer Details</button>
+          </div>
+        ) : (
+          <div className="card border border-dashed border-slate-300 dark:border-white/10 flex flex-col items-center justify-center text-center py-8 bg-slate-50 dark:bg-white/5">
+             <div className="h-12 w-12 bg-slate-200 dark:bg-white/10 rounded-full flex items-center justify-center mb-3">
+               <ShieldAlert size={20} className="text-slate-400" />
+             </div>
+             <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">Unlock Direct Offers</p>
+             <p className="text-sm text-slate-500 max-w-sm mb-4">Complete the Advanced AI Mock Interview to prove your skills and get fast-tracked by top companies.</p>
+             <a href="/student/mock-interview" className="text-primary-600 font-semibold text-sm hover:underline">Take Mock Interview &rarr;</a>
+          </div>
+        )}
+      </div>
+
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
         {isLoadingJobs ? (
           <div className="col-span-full py-12 flex flex-col items-center justify-center text-slate-500">
@@ -166,14 +204,17 @@ export default function JobPortal() {
           </div>
         ) : filtered.map((j) => {
           const hasApplied = appliedJobs[j.id];
+          const isLockedPremium = j.isPremium && !isPremium;
           
           return (
-            <div key={j.id} className="card card-hover flex flex-col">
+            <div key={j.id} className={`card card-hover flex flex-col ${j.isPremium ? 'border-amber-400/30 bg-amber-50/50 dark:bg-amber-900/5' : ''}`}>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-11 w-11 rounded-xl2 bg-brand-gradient-soft flex items-center justify-center text-xl">{j.logo}</div>
+                  <div className={`h-11 w-11 rounded-xl2 flex items-center justify-center text-xl ${j.isPremium ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white' : 'bg-brand-gradient-soft'}`}>{j.logo}</div>
                   <div>
-                    <p className="font-semibold text-sm">{j.title}</p>
+                    <p className="font-semibold text-sm flex items-center gap-1">
+                      {j.title} {j.isPremium && <Crown size={12} className="text-amber-500" />}
+                    </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">{j.company}</p>
                   </div>
                 </div>
@@ -184,13 +225,22 @@ export default function JobPortal() {
                 <p className="flex items-center gap-2"><MapPin size={14} /> {j.location} {j.location.toLowerCase().includes('remote') && <span className="badge bg-secondary-500/10 text-secondary-500 ml-1">Remote</span>}</p>
                 <p className="flex items-center gap-2"><Briefcase size={14} /> {j.experience || 'Any Experience'}</p>
               </div>
-              <button 
-                onClick={() => openApplication(j)}
-                disabled={hasApplied}
-                className={`mt-auto w-full !py-2.5 text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 ${hasApplied ? 'bg-success/10 text-success cursor-default rounded-xl2' : 'btn-primary'}`}
-              >
-                {hasApplied ? <><CheckCircle2 size={16} /> Applied</> : 'Apply now'}
-              </button>
+              {isLockedPremium ? (
+                <button 
+                  onClick={() => alert("Please click 'Upgrade to PRO' in the sidebar to access elite job listings.")}
+                  className="mt-auto w-full !py-2.5 text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-500/10 dark:text-amber-500 dark:hover:bg-amber-500/20 rounded-xl2"
+                >
+                  <Lock size={16} /> Unlock with PRO
+                </button>
+              ) : (
+                <button 
+                  onClick={() => openApplication(j)}
+                  disabled={hasApplied}
+                  className={`mt-auto w-full !py-2.5 text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 ${hasApplied ? 'bg-success/10 text-success cursor-default rounded-xl2' : 'btn-primary'}`}
+                >
+                  {hasApplied ? <><CheckCircle2 size={16} /> Applied</> : 'Apply now'}
+                </button>
+              )}
             </div>
           )
         })}
